@@ -1,0 +1,4 @@
+./examples/* linguist-vendored
+*.md linguist-vendored
+*.css linguist-vendored
+*.html linguist-vendored
