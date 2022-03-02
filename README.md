@@ -39,3 +39,83 @@ A JS module for data validation of complexly-structured-data.
 * Data-Type/Structure can be transformed to another Data-Type/Structure(s) ***recursively***.
 
 ----
+## Basic Example:
+```javascript
+import { DataValidator as DV } from './data-validator.js';
+
+const dv = (() => {
+	try {
+		return DV.New`
+		string.split('.') => [
+			base64 => json => {
+				alg: string.allowed('HS256', 'HS512'),
+				typ: string.allowed('JWT'),
+			},
+			base64 => json => {
+				?exp: unsigned,
+				?iat: unsigned,
+				?nbf: unsigned,
+				?name: ([..2..string,].join(' ')|string),
+				...
+			},
+			base64
+		]`;
+	} catch (error) {
+		console.error(error);
+		return null;
+	}
+})();
+
+if(dv !== null) {
+	{
+		/*
+		JWT HEAD = { "alg": "HS256", "typ": "JWT" }
+		JWT PAYLOAD = { "sub": "1234567890", "name": "John Doe", "iat": 1516239022 }
+		*/
+		const {valid, value, error} = dv.validate(`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`);
+		
+		console.log('Result:\n\tValid:', valid, '\n\tValue:', value, '\n\tError:', error);
+	}
+	{
+		/*
+		JWT HEAD = { "alg": "HS256", "typ": "JWT" }
+		JWT PAYLOAD = { "sub": "1234567890", "name": ["John","Doe"], "iat": 1516239022, "nbf": 1516239021, "exp": 1516239122 }
+		*/
+		const {valid, value, error} = dv.validate(`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6WyJKb2huIiwiRG9lIl0sImlhdCI6MTUxNjIzOTAyMiwibmJmIjoxNTE2MjM5MDIxLCJleHAiOjE1MTYyMzkxMjJ9.obXwAnyGDz8UlzMjmo2gUVjyVj8tfkaoJanBSPErzz8`);
+		
+		console.log('Result:\n\tValid:', valid, '\n\tValue:', value, '\n\tError:', error);
+	}
+}
+```
+Output:
+```
+Result:
+	Valid: true 
+	Value: [{
+			"alg": "HS256",
+			"typ": "JWT"
+		}, {
+			"sub": "1234567890",
+			"name": "John Doe",
+			"iat": 1516239022
+		},
+		"IùJÇ\u0004IHÇ(]Oð¤Ç~:N²%_Úu\u000b,Ã"
+	]
+	Error: null
+
+Result:
+	Valid: true 
+	Value: [{
+			"alg": "HS256",
+			"typ": "JWT"
+		}, {
+			"sub": "1234567890",
+			"name": "John Doe",
+			"iat": 1516239022,
+			"nbf": 1516239021,
+			"exp": 1516239122
+			},
+		"¡µð\u0002|\u000f?\u00143# QXòV?-~F¨%©ÁHñ+Ï?"
+	]
+	Error: null
+```

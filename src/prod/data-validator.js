@@ -3220,7 +3220,7 @@ class TypeStore {
 				return Object.keys(rf).map(k => `${key}.${k}`)
 			}).flat(1)
 		};
-		console.log(`\tTypes Info:`, this.#init);
+		// console.log(`\tTypes Info:`, this.#init);
 	}
 	getType(ty, checkExistance = true) {
 		if(checkExistance && !this.contains(ty)) { return null; }

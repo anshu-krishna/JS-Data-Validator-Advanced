@@ -6,7 +6,7 @@
 </head>
 <body>
 	<script type="module">
-		import { DataValidator as DV } from './data-validator.js';
+		import { DataValidator as DV } from './data-validator-min.js';
 
 		const dv = (() => {
 			try {
@@ -38,7 +38,7 @@
 				console.log('Result:\n\tValid:', valid, '\n\tValue:', value, '\n\tError:', error);
 			}
 			{
-				const {valid, value, error} = dv.validate(`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6WyJKb2huIiwiRG9lIl0sImlhdCI6MTUxNjIzOTAyMn0.Fvtv9t0lLQeI1T64an45o90y_1mt-QiXTeoTS3KwGes`);
+				const {valid, value, error} = dv.validate(`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6WyJKb2huIiwiRG9lIl0sImlhdCI6MTUxNjIzOTAyMiwibmJmIjoxNTE2MjM5MDIxLCJleHAiOjE1MTYyMzkxMjJ9.obXwAnyGDz8UlzMjmo2gUVjyVj8tfkaoJanBSPErzz8`);
 				console.log('Result:\n\tValid:', valid, '\n\tValue:', value, '\n\tError:', error);
 			}
 		}
