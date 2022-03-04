@@ -3162,7 +3162,7 @@ export class DataValidator {
 		struct = struct.join('');
 		try {
 			const dv = new DataValidator(Parser.parse(struct));
-			// dv.__parserSyntax__ = struct;
+			dv.__structureSyntax__ = struct;
 			return dv;
 		} catch (err) {
 			if(err instanceof Parser.SyntaxError) {
@@ -3171,6 +3171,39 @@ export class DataValidator {
 				throw new Error(err.message);
 			}
 		}
+	}
+	static #arrayListMaker(list) {
+		list.idx = -1;
+		list.len = list.length - 1;
+		list.rpt = 0;
+		list.next = function(lastError = false) {
+			// console.log('\t\tnext called; idx:', this.idx, '; len:', this.len, '; rpt:', this.rpt, '; fail:', lastError);
+			if(this.rpt === 0) {
+				this.idx++;
+				this.rpt = 'reset';
+				if(this.idx > this.len) {
+					return 'error';
+				}
+				return this.next();
+			}
+			if(this.rpt === 'reset') {
+				this.rpt = this[this.idx].rpt ?? 1;
+				return this.next(lastError);
+			}
+			if(this.rpt === 'yes') {
+				if(lastError) {
+					if(this.idx === this.len) {
+						return 'error';
+					}
+					this.rpt = 0;
+					return this.next(lastError);
+				} else {
+					return this[this.idx];
+				}
+			}
+			this.rpt--;
+			return this[this.idx];
+		};
 	}
 	static #checkStruct(struct, depth = 0) {
 		if(!isObject(struct)) { return Ret.Invalid('Not an object'); }
@@ -3230,5 +3263,125 @@ export class DataValidator {
 			}
 		}
 		this.#struct = struct;
+	}
+	validate(value) {
+		return DataValidator.#validate(value, this.#struct);
+	}
+	static #validate(input, struct, depth = 0) {
+		// const padding = ''.padStart(depth * 4, ' ');
+		// console.log(`${padding}VALIDATING: struct = `, struct,'; value = ', input);
+
+		const {ty = null, fn: fns = [], nx = null} = struct;
+		switch(ty) {
+			case '@arr@': {
+				if(!Array.isArray(input)) {
+					return Ret.Invalid(`Expected array; Received ${JSON.stringify(input)};`)
+				}
+				const ret = [];
+				const list = struct.ls ?? [];
+				DataValidator.#arrayListMaker(list);
+				let nxtTy = list.next();
+				const entries = Object.entries(input);
+				for (let e = 0, eout = entries.length; e < eout; e++) {
+					const [idx, item] = entries[e];
+					if (nxtTy === 'error') {
+						return Ret.Invalid(`[${idx}] Index out of bounds`);
+					}
+					let test = DataValidator.#validate(item, nxtTy, depth + 1);
+					if (!test.valid) {
+						if (list.more === 'many' && list.idx !== list.len) {
+							nxtTy = list.next(true);
+							e--;
+							continue;
+						} else {
+							return Ret.Invalid(`[${idx}]: ${test.error}`);
+						}
+					}
+					// ret[idx] = test.value; // Allows empty slots in array
+					ret.push(test.value);
+					nxtTy = list.next();
+				}
+				input = ret;
+			} break;
+			case '@obj@': {
+				if (!isObject(input)) {
+					return Ret.Invalid(`Expected object; Received ${JSON.stringify(input)};`)
+				}
+				const list = struct.ls ?? {};
+				for(const [k, {def}] of Object.entries(list)) {
+					if(typeof def !== 'undefined' && typeof input[k] === 'undefined') {
+						input[k] = def;
+					}
+				}
+				const keys = Object.keys(list);
+				{
+					const req = keys.filter(k => list[k].rq ?? false);
+					const ipk = Object.keys(input)
+					const missingKeys = [];
+					for (const r of req) {
+						if (!ipk.includes(r)) {
+							missingKeys.push(`{${r}}`);
+						}
+					}
+					if (missingKeys.length !== 0) {
+						return Ret.Invalid(`Missing object key(s): ${missingKeys.join(', ')}; Received ${JSON.stringify(input)};`)
+					}
+				}
+				const keep = struct.kp ?? false;
+				const ret = {};
+				for (const [k, item] of Object.entries(input)) {
+					if (keys.includes(k)) {
+						const test = DataValidator.#validate(item, list[k], depth + 1);
+						if (!test.valid) {
+							return Ret.Invalid(`{${k}}: ${test.error}`);
+						}
+						ret[k] = test.value;
+					} else if (keep) {
+						ret[k] = item;
+					}
+				}
+				input = ret;
+			} break;
+			case '@or@': {
+				const list = struct.ls ?? [];
+				let test = null;
+				for (const item of list) {
+					test = DataValidator.#validate(input, item, depth + 1);
+					if (test.valid) {
+						break;
+					}
+				}
+				if (test === null || !test.valid) {
+					return Ret.Invalid(`Expected type(s): (${list.map(item => item.ty ?? 'undefined').join('|')}); Received: ${JSON.stringify(input)};`);
+				}
+				input = test.value;
+			} break;
+			default: {
+				const test = Types.parse(ty, input);
+				if(!test.valid) {
+					return Ret.Invalid(`Expected type: ${Types.getName(ty)}; Received: ${JSON.stringify(input)};`);
+				}
+				input = test.value;
+			} break;
+		}
+		for(const f of fns) {
+			let {fn = 'undefined', args = []} = f;
+			const test = Funcs.runFn(ty, fn, input, args);
+			if(!test.valid) {
+				test.error ??= `Cannot convert ${JSON.stringify(input)};`;
+				return Ret.Invalid(`Formatter '${Types.name(ty)}.${fn}' error: ${test.error}`);
+			}
+			// console.log(`\n${padding}Formatter:`, fn, '; args:', args, `;\n${padding}pre-value:`, input, `\n${padding}post-value:`, test.value);
+			input = test.value;
+		}
+		if(nx !== null) {
+			const nxTest = DataValidator.#validate(input, nx, depth + 1);
+			if(!nxTest.valid) {
+				nxTest.error = `${Types.name(ty)}\n=> ${nxTest.error}`;
+				return nxTest;
+			}
+			input = nxTest.value;
+		}
+		return Ret.Valid(input);
 	}
 }

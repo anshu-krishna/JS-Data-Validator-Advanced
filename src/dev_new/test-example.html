@@ -25,6 +25,7 @@
 						?iat: unsigned,
 						?nbf: unsigned,
 						?name: ([..2..string,].join(' ')|string),
+						?city(='Somewhere'): string,
 						...
 					},
 					base64
@@ -34,18 +35,18 @@
 				return null;
 			}
 		})();
-		console.log(dv);
+		// console.log(dv);
 
-		// if(dv !== null) {
-		// 	{
-		// 		const {valid, value, error} = dv.validate(`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`);
-		// 		console.log('Result:\n\tValid:', valid, '\n\tValue:', value, '\n\tError:', error);
-		// 	}
-		// 	{
-		// 		const {valid, value, error} = dv.validate(`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6WyJKb2huIiwiRG9lIl0sImlhdCI6MTUxNjIzOTAyMiwibmJmIjoxNTE2MjM5MDIxLCJleHAiOjE1MTYyMzkxMjJ9.obXwAnyGDz8UlzMjmo2gUVjyVj8tfkaoJanBSPErzz8`);
-		// 		console.log('Result:\n\tValid:', valid, '\n\tValue:', value, '\n\tError:', error);
-		// 	}
-		// }
+		if(dv !== null) {
+			{
+				const {valid, value, error} = dv.validate(`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`);
+				console.log('Result:\n\tValid:', valid, '\n\tValue:', value, '\n\tError:', error);
+			}
+			{
+				const {valid, value, error} = dv.validate(`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6WyJKb2huIiwiRG9lIl0sImlhdCI6MTUxNjIzOTAyMiwibmJmIjoxNTE2MjM5MDIxLCJleHAiOjE1MTYyMzkxMjJ9.obXwAnyGDz8UlzMjmo2gUVjyVj8tfkaoJanBSPErzz8`);
+				console.log('Result:\n\tValid:', valid, '\n\tValue:', value, '\n\tError:', error);
+			}
+		}
 	</script>
 </body>
 </html>
