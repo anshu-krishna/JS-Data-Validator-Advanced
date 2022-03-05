@@ -2899,21 +2899,36 @@ export const Types = new class {
 			}
 		},
 	};
-	name(ty) {
-		if(typeof this.#store[ty] === 'undefined') { return null; }
-		return this.#store[ty].name ?? ty;
-	}
-	parse(ty, input) {
-		if(typeof this.#store[ty] === 'undefined') {
-			return Ret.Invalid(`Unknown type: ${JSON.stringify(ty)}`);
+	add({ type, name = null, handler}){
+		if(typeof type !== 'string') {
+			throw new TypeError('Type must be a string');
 		}
-		const value = this.#store[ty].parse(input);
+		if(name !== null &&  typeof name !== 'string') {
+			throw new TypeError('Name must be a string');
+		}
+		if(typeof handler !== 'function') {
+			throw new TypeError('Handler must be a funciton');
+		}
+		this.#store[type] = { parse : handler };
+		if(name !== null) {
+			this.#store[type].name = name;
+		}
+	}
+	name(type) {
+		if(typeof this.#store[type] === 'undefined') { return null; }
+		return this.#store[type].name ?? type;
+	}
+	parse(type, input) {
+		if(typeof this.#store[type] === 'undefined') {
+			return Ret.Invalid(`Unknown type: ${JSON.stringify(type)}`);
+		}
+		const value = this.#store[type].parse(input);
 		if(typeof value === 'undefined') {
-			return Ret.Invalid(`Expected type: '${this.name(ty)}'; Received: ${JSON.stringify(input)}`);
+			return Ret.Invalid(`Expected type: '${this.name(type)}'; Received: ${JSON.stringify(input)}`);
 		}
 		if(value instanceof Ret) { 
 			if(!value.valid) {
-				value.error ??= `Expected type: '${this.name(ty)}'; Received: ${JSON.stringify(input)}`;
+				value.error ??= `Expected type: '${this.name(type)}'; Received: ${JSON.stringify(input)}`;
 			}
 			return value;
 		}
