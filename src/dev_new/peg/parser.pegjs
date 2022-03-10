@@ -30,11 +30,12 @@ Type = ORB head:Format tail:(_ "|" _ v:Format { return v; })* CRB fn:FuncList?
 		}
 	/ OSB list:(head: ArrayFormat tail:(COMMA v:ArrayFormat { return v; } )* COMMA? { return [head, ...tail]; })? CSB fn:FuncList?
 		{ return type_maker({ ty: "@arr@", ls:list??[], fn: fn }); }
-	/ OCB list:(head:IdfVal tail:(COMMA v:IdfVal { return v; })* keep:(COMMA "...")? COMMA? { return {items: Object.fromEntries([head, ...tail]), keep: keep !== null}; } )? CCB fn:FuncList?
+	/ OCB list:(
+		head:IdfVal tail:(COMMA v:IdfVal { return v; })* { return Object.fromEntries([head, ...tail]); }
+	)? keep:(COMMA "...")? COMMA? CCB fn:FuncList?
 	{
-		list ??= {};
-		const ret = type_maker({ ty: "@obj@", ls :list.items??[], fn: fn });
-		if(list.keep ?? false) { ret.kp = true; }
+		const ret = type_maker({ ty: "@obj@", ls :list, fn: fn });
+		if(keep ?? false) { ret.kp = true; }
 		return ret;
 	}
 	/ ty:Idf fn:FuncList? {
