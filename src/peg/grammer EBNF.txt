@@ -1,0 +1,45 @@
+/* converted on Mon Mar 14, 2022, 10:52 (UTC+05:30) by pegjs-to-w3c v0.57 which is Copyright (c) 2011-2022 by Gunther Rademacher <grd@gmx.net> */
+
+Format   ::= __ Type ( __ '=>' __ Type )*
+Type     ::= ( __ ( '(' __ Format __ ( '|' __ Format __ )* ')' | '[' __ ( ArrayFormat __ ',' ( __ ArrayFormat __ ',' )* __? )? __ ']' | '{' __ ( IdentifierValue ( __ ',' __ IdentifierValue )* )? __ ',' __ ( '...' __ ',' __ )? __? '}' ) __ | Identifier ) FunctionList?
+IdentifierValue
+         ::= '?'? Identifier __ ( '(' __ '=' __ JSONValue __ ')' __ __ )? ':' __ Format
+FunctionList
+         ::= ( __ '.' Identifier ( __ '(' __ ValueList? __ ')' __ )? )+
+JSONValue
+         ::= 'false'
+           | 'null'
+           | 'true'
+           | Object
+           | Array
+           | Number
+           | String
+Object   ::= __ '{' __ ( KeyVal ( __ ',' __ KeyVal )* )? __ ',' __ __? '}' __
+KeyVal   ::= ( String | KeyChain ) __ ':' __ JSONValue
+KeyChain ::= Identifier ( '.' Identifier )*
+Array    ::= __ '[' __ ValueList? __ ',' __ __? ']' __
+ValueList
+         ::= JSONValue ( __ ',' __ JSONValue )*
+
+<?TOKENS?>
+
+ArrayFormat
+         ::= ( ( '..' ( '0' | [1-9] [0-9]* ) '..' | '...' ) __ )? Format
+Identifier
+         ::= [_a-z$] [0-9a-z$_]*
+Number   ::= '-'? ( '0' | [1-9] [0-9]* ) ( '.' [0-9]+ )? ( [eE] ( '-' | '+' )? [0-9]+ )?
+String   ::= '"' ( [^\"#x0-#x1F] | EscChar )* '"'
+           | "'" ( [^\'#x0-#x1F] | EscChar )* "'"
+           | '`' ( [^\`#x0-#x1F] | EscChar )* '`'
+EscChar  ::= '\\'
+           | '\"'
+           | "\'"
+           | '\`'
+           | '\b'
+           | '\f'
+           | '\n'
+           | '\r'
+           | '\t'
+           | '\u' [0-9] $ HexDig HexDig HexDig HexDig
+__       ::= [ #x9#xA#xD]*
+HexDig   ::= [0-9a-f]

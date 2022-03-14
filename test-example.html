@@ -5,8 +5,11 @@
 	<title>Test</title>
 </head>
 <body>
+	<pre></pre>
 	<script type="module">
-		import { DataValidator as DV } from './data-validator-min.js';
+		import {Types, DataValidator as DV } from './src/data-validator-min.js';
+
+		// console.log(Types.parse('int', '   146546 '));
 
 		const dv = (() => {
 			try {
@@ -14,14 +17,15 @@
 				string.split('.')
 				=> [
 					base64 => json => {
-						alg: string.allowed('HS256', 'HS512'),
-						typ: string.allowed('JWT'),
+						alg: string._allowed('HS256', 'HS512'),
+						typ: string._allowed('JWT'),
 					},
 					base64 => json => {
 						?exp: unsigned,
 						?iat: unsigned,
 						?nbf: unsigned,
 						?name: ([..2..string,].join(' ')|string),
+						?city(='Somewhere'): string,
 						...
 					},
 					base64
@@ -31,6 +35,7 @@
 				return null;
 			}
 		})();
+		// console.log(dv);
 
 		if(dv !== null) {
 			{

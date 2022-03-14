@@ -43,11 +43,11 @@ Type = ORB head:Format tail:(_ "|" _ v:Format { return v; })* CRB fn:FuncList?
 	}
 
 IdfVal "identifier:data-type pair" = opt:"?"? name:Idf def:(ORB _ "=" _ v:Value CRB { return {val:v}; } )? COLON value:Format
-		{
-			if(opt === null) { value.rq = true; }
-			if(def !== null) { value.def = def.val; }
-			return [name, value] ;
-		}
+	{
+		if(opt === null) { value.rq = true; }
+		if(def !== null) { value.def = def.val; }
+		return [name, value] ;
+	}
 ArrayFormat = repeat:MoreCount? format:Format
 	{
 		if(repeat) { format.rpt = repeat; }
