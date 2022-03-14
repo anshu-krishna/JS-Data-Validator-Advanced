@@ -3277,6 +3277,9 @@ export class DataValidator {
 		}
 		this.#struct = struct;
 	}
+	get struct() {
+		return this.#struct;
+	}
 	validate(value) {
 		return DataValidator.#validate(value, this.#struct);
 	}
