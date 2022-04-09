@@ -1,0 +1,43 @@
+* { box-sizing: border-box; }
+body {
+	margin: 0; height: 100vh; min-height: 100vh; max-height: 100vh;
+	color: white; background: #212121;
+	display: grid;
+	gap: 0.5em;
+	grid-template-rows: min-content 1fr min-content;
+	font-family: Consolas, 'Courier New', monospace;
+}
+main {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: min-content minmax(0, 1fr);
+	gap: 0.5em;
+	overflow: hidden;
+}
+main > :is(div, pre) {
+	border: none; box-shadow: 0 0 2px black;
+	overflow-y: hidden;
+	font-size: 1rem;
+}
+.CodeMirror {
+	height: auto;
+}
+#op {
+	color: white; background: #212121;
+	margin: 0; padding: 0.5em 0.75em;
+	word-break: normal;
+	white-space: pre-wrap;
+	overflow-y: auto;
+}
+#op.err { color: #ff0606; }
+header, footer {
+	border: none; box-shadow: 0 0 2px black;
+	padding: 0.5em;
+	background: #121212;
+}
+
+main > :is(header, footer) {
+	text-align: center;
+	font-weight: 900;
+	font-size: 1.1em;
+}
