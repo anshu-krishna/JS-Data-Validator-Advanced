@@ -1,0 +1,62 @@
+<style>
+	* { box-sizing: border-box; }
+	:host {
+		display: inline-block;
+		cursor: pointer;
+		--color: currentColor;
+		--slider-color: linear-gradient(to right, #01579b 0%,#025a9e 100%);
+		--border-color: #01579b;
+		--disabled-color: gray;
+	}
+	#cntr {
+		display: grid;
+		gap: 0.5em;
+		grid-template-columns: max-content max-content;
+		color: var(--color);
+		align-items: center;
+	}
+	slot {
+		font-weight: 900;
+		cursor: pointer;
+		min-width: 0;
+		width: 0;
+	}
+	main {
+		font-family: Consolas, 'Courier New', monospace;
+		font-size: 1rem;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		justify-content: space-between;
+		align-items: center;
+		width: 8ch;
+		height: 1.5em;
+		border: 1px solid var(--border-color);
+		position: relative;
+		border-radius: 0.5em;
+	}
+	#slider {
+		display: inline-block;
+		width: 4ch;
+		height: 1.5em;
+		border-radius: 0.5em;
+		background: var(--slider-color);
+		position: absolute;
+		z-index: 1;
+		left: 0;
+		transition: left ease-in-out 0.12s;
+	}
+	:host([checked]) #slider {
+		left: 4ch;
+	}
+	span.msg {
+		padding: 1px;
+		text-align: center;
+		color: var(--color);
+	}
+	:host([disabled]) {
+		pointer-events: none;
+	}
+	:host([disabled]) #slider {
+		background: var(--disabled-color);
+	}
+</style><div id="cntr"><slot></slot><main><span class="msg">✓</span><span class="msg">🞩</span><span id="slider"></span></main></div>

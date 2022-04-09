@@ -41,3 +41,12 @@ main > :is(header, footer) {
 	font-weight: 900;
 	font-size: 1.1em;
 }
+body > header {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+toggle-button {
+	box-shadow: 0 0 2px #555;
+	justify-self: center;
+	padding: 0.5em;
+}

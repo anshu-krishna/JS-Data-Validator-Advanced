@@ -3,14 +3,16 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Data-Validator Editor</title>
+	<script src="./toggle-button/toggle-button.js" type="module"></script>
 	<script src="./codemirror-5.65.2/codemirror.js"></script>
 	<link rel="stylesheet" href="./codemirror-5.65.2/codemirror.css" />
 	<link rel="stylesheet" href="./codemirror-5.65.2/material-darker.css" />
-	<link rel="stylesheet" href="./main.css">
+	<link rel="stylesheet" href="./main.css" />
 </head>
 <body>
 	<header>
-		<label>Check Types/Funcs: <input type="checkbox" id="ty_chk" checked /></label>
+		<toggle-button id="ty_chk" checked>Check Types/Funcs:</toggle-button>
+		<toggle-button id="min_chk">Minify Output:</toggle-button>
 	</header>
 	<main>
 		<header>Define</header>
