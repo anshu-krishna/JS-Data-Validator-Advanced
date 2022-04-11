@@ -42,11 +42,32 @@ main > :is(header, footer) {
 	font-size: 1.1em;
 }
 body > header {
+	display: flex;
+	gap: 0.5em;
+	flex-wrap: wrap;
+}
+body > footer {
 	display: grid;
+	gap: 0.5em;
 	grid-template-columns: 1fr 1fr;
+}
+body > footer > div {
+	display: grid;
+	justify-content: center;
+	align-items: center;
 }
 toggle-button {
 	box-shadow: 0 0 2px #555;
 	justify-self: center;
 	padding: 0.5em;
+}
+span.copy {
+	cursor: pointer;
+	color: gray;
+}
+span.copy:hover {
+	color: white;
+}
+span.copy:active {
+	filter: brightness(0.8);
 }

@@ -18,6 +18,17 @@ class ToggleButton extends HTMLElement {
 	get value() {
 		return this.hasAttribute('checked');
 	}
+	set value(val) {
+		if(!!val) { this.setAttribute('checked', 'checked'); }
+		else { this.removeAttribute('checked'); }
+	}
+	get disabled() {
+		return this.hasAttribute('disabled');
+	}
+	set disabled(val) {
+		if(!!val) { this.setAttribute('disabled', 'disabled'); }
+		else { this.removeAttribute('disabled'); }
+	}
 	// connectedCallback() {}
 	// disconnectedCallback() {}
 	// adoptedCallback() {}
