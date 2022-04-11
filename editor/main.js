@@ -42,11 +42,22 @@ const op = new CodeMirror((elt) => {
 	lineWrapping: true,
 	readOnly: true
 });
-function php_stringify(struct) {
+const indentwith = '\t';
+function php_stringify(struct, indent = null) {
 	if(Array.isArray(struct)) {
-		return `[${struct.map(v => php_stringify(v)).join(',')}]`;
+		if(indent === null) {
+			return `[${struct.map(v => php_stringify(v)).join(',')}]`;
+		} else {
+			const indent2 = `${indent ?? ''}${indentwith}`;
+			return `[\n${struct.map(v => `${indent2}${php_stringify(v, indent2)}`).join(',\n')}\n${indent}]`;
+		}
 	} else if(typeof struct === 'object' && struct !== null) {
-		return `[${Object.entries(struct).map(([k, v]) => `${JSON.stringify(k)}=>${php_stringify(v)}`).join(',')}]`;
+		if(indent === null) {
+			return `[${Object.entries(struct).map(([k, v]) => `${JSON.stringify(k)}=>${php_stringify(v)}`).join(',')}]`;
+		} else {
+			const indent2 = `${indent ?? ''}${indentwith}`;
+			return `[\n${Object.entries(struct).map(([k, v]) => `${indent2}${JSON.stringify(k)} => ${php_stringify(v, indent2)}`).join(',\n')}\n${indent}]`;
+		}
 	} else {
 		return JSON.stringify(struct);
 	}
@@ -63,7 +74,7 @@ function updater() {
 		const struct = Parser.parse(txt);
 		const dv = new DV(struct, ty_chk.value);
 		if(php_chk.value) {
-			op.setValue(php_stringify(struct, min_chk.value));
+			op.setValue(php_stringify(struct, min_chk.value ? null : ''));
 		} else {
 			op.setValue(min_chk.value ? JSON.stringify(struct) : JSON.stringify(struct, null, 4));
 		}
@@ -79,10 +90,7 @@ function updater() {
 }
 ty_chk.onchange = updater;
 min_chk.onchange = updater;
-php_chk.addEventListener('change', _ => {
-	min_chk.disabled = php_chk.value;
-	updater();
-});
+php_chk.onchange = updater;
 
 ip.on('change', updater);
 const [copyDefine, copyResult] = document.querySelectorAll('span.copy');
