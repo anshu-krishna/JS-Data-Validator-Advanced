@@ -1,5 +1,4 @@
 import { DataValidator as DV, Parser } from '../src/data-validator.js';
-const op = document.querySelector('#op');
 const ty_chk = document.querySelector('#ty_chk');
 const min_chk = document.querySelector('#min_chk');
 const php_chk = document.querySelector('#php_chk');
@@ -15,37 +14,66 @@ const ip = new CodeMirror((elt) => {
 	indentWithTabs: true,
 	lineWrapping: true
 });
-function php_stringify(struct, depth = 0) {
+ip.setValue(`string.split('.') => [
+	base64 => json => {
+		alg: string._allowed('HS256', 'HS512'),
+		typ: string._allowed('JWT'),
+	},
+	base64 => json => {
+		exp: unsigned,
+		iat: unsigned,
+		nbf: unsigned,
+		?name: ([..2..string,].join(' ')|string),
+		?city(='Somewhere'): string,
+		?vals: [...int],
+		...
+	},
+	base64
+]`);
+const op = new CodeMirror((elt) => {
+	let op = document.querySelector('#op');
+	document.body.querySelector('main').replaceChild(elt, op);
+	elt.id = 'op';
+}, {
+	lineNumbers: true,
+	theme: 'material-darker',
+	smartInden: true,
+	indentWithTabs: true,
+	lineWrapping: true,
+	readOnly: true
+});
+function php_stringify(struct) {
 	if(Array.isArray(struct)) {
-		return `[${struct.map(v => php_stringify(v, depth + 1)).join(',')}]`;
+		return `[${struct.map(v => php_stringify(v)).join(',')}]`;
 	} else if(typeof struct === 'object' && struct !== null) {
-		return `[${Object.entries(struct).map(([k, v]) => `${JSON.stringify(k)}=>${php_stringify(v, depth + 1)}`).join(',')}]`;
+		return `[${Object.entries(struct).map(([k, v]) => `${JSON.stringify(k)}=>${php_stringify(v)}`).join(',')}]`;
 	} else {
 		return JSON.stringify(struct);
 	}
 }
 function updater() {
+	const opnode = document.querySelector('#op');
 	try {
 		const txt = ip.getValue().trim();
 		if(txt.length === 0) {
-			op.innerText = '';
-			op.classList.remove('err');
+			op.setValue('');
+			opnode.classList.remove('err');
 			return;
 		}
 		const struct = Parser.parse(txt);
 		const dv = new DV(struct, ty_chk.value);
 		if(php_chk.value) {
-			op.innerText = php_stringify(struct, min_chk.value);
+			op.setValue(php_stringify(struct, min_chk.value));
 		} else {
-			op.innerText = min_chk.value ? JSON.stringify(struct) : JSON.stringify(struct, null, 4);
+			op.setValue(min_chk.value ? JSON.stringify(struct) : JSON.stringify(struct, null, 4));
 		}
-		op.classList.remove('err');
+		opnode.classList.remove('err');
 	} catch (error) {
-		op.classList.add('err');
+		opnode.classList.add('err');
 		if(error instanceof Parser.SyntaxError) {
-			op.innerText = `ERROR:\nParse Error; Line:${error.location.start.line}; Column:${error.location.start.column}; ${error.message}`;
+			op.setValue(`/*****\nERROR:\nParse Error; Line:${error.location.start.line}; Column:${error.location.start.column}; ${error.message}\n*****/`);
 		} else {
-			op.innerText = `ERROR:\n${error.message}`;
+			op.setValue(`/*****\nERROR:\n${error.message}\n*****/`);
 		}
 	}
 }
@@ -62,5 +90,5 @@ copyDefine.addEventListener('click', _ => {
 	navigator.clipboard.writeText(ip.getValue().trim());
 });
 copyResult.addEventListener('click', _ => {
-	navigator.clipboard.writeText(op.innerText);
+	navigator.clipboard.writeText(op.getValue().trim());
 });

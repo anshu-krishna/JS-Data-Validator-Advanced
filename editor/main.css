@@ -22,20 +22,12 @@ main > :is(div, pre) {
 .CodeMirror {
 	height: auto;
 }
-#op {
-	color: white; background: #212121;
-	margin: 0; padding: 0.5em 0.75em;
-	word-break: normal;
-	white-space: pre-wrap;
-	overflow-y: auto;
-}
 #op.err { color: #ff0606; }
 header, footer {
 	border: none; box-shadow: 0 0 2px black;
 	padding: 0.5em;
 	background: #121212;
 }
-
 main > :is(header, footer) {
 	text-align: center;
 	font-weight: 900;
@@ -60,10 +52,15 @@ toggle-button {
 	box-shadow: 0 0 2px #555;
 	justify-self: center;
 	padding: 0.5em;
+	border-radius: 0.25em;
+}
+toggle-button:hover {
+	box-shadow: 0 0 2px #fff;
 }
 span.copy {
 	cursor: pointer;
 	color: gray;
+	padding: 0 0.25em;
 }
 span.copy:hover {
 	color: white;
