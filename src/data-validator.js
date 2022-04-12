@@ -34,7 +34,7 @@ export class Ret {
 /*************************
  * Parser
  *************************/
- export const Parser = (function () {
+export const Parser = (function () {
 	"use strict";
 
 	function peg_subclass(child, parent) {
