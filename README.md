@@ -7,7 +7,11 @@ A JS module for data validation of complexly-structured-data.
 ## Installation:
 
 ```javascript
+<script type="module">
+import { DataValidator } from 'https://cdn.jsdelivr.net/gh/anshu-krishna/JS-Data-Validator-Advanced@1.0/src/data-validator-min.js';
 
+// Your code goes here
+</script>
 ```
 
 ----
