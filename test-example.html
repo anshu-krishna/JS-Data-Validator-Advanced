@@ -14,8 +14,7 @@
 		const dv = (() => {
 			try {
 				return DV.New`
-				string.split('.')
-				=> [
+				string.split('.') => [
 					base64 => json => {
 						alg: string._allowed('HS256', 'HS512'),
 						typ: string._allowed('JWT'),

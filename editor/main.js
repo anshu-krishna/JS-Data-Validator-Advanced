@@ -90,7 +90,10 @@ function updater() {
 }
 ty_chk.onchange = updater;
 min_chk.onchange = updater;
-php_chk.onchange = updater;
+php_chk.onchange = _ => {
+	ty_chk.disabled = php_chk.value;
+	updater();
+};
 
 ip.on('change', updater);
 const [copyDefine, copyResult] = document.querySelectorAll('span.copy');
