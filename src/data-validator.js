@@ -1,7 +1,7 @@
 /*************************
  * Other Functions / Classes
  *************************/
-function isObject(obj) {
+ function isObject(obj) {
 	return (obj !== null && typeof obj === 'object');
 }
 // function ordinal(n) {
@@ -2986,6 +2986,15 @@ export const Funcs = new class {
 		ty: ['string'],
 		fn: function(input) {
 			return input.replace(/\w\S*/g, txt => `${txt.charAt(0).toUpperCase()}${txt.substring(1).toLowerCase()}`);
+		}
+	}, {
+		name: '_isUUID4',
+		ty: ['string'],
+		fn: function(input) {
+			if(/^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i.test(input)) {
+				return input.toLowerCase();
+			}
+			throw new TypeError('Not a UUID4 string');
 		}
 	}, {
 		name: '_range',
