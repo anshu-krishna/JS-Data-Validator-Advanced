@@ -3384,7 +3384,7 @@ export class DataValidator {
 			default: {
 				const test = Types.parse(ty, input);
 				if(!test.valid) {
-					return Ret.Invalid(`Expected type: ${Types.getName(ty)}; Received: ${JSON.stringify(input)};`);
+					return Ret.Invalid(`Expected type: ${Types.name(ty)}; Received: ${JSON.stringify(input)};`);
 				}
 				input = test.value;
 			} break;
