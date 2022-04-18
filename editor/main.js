@@ -14,21 +14,24 @@ const ip = new CodeMirror((elt) => {
 	indentWithTabs: true,
 	lineWrapping: true
 });
-ip.setValue(`string.split('.') => [
-	base64 => json => {
-		alg: string._allowed('HS256', 'HS512'),
-		typ: string._allowed('JWT'),
+ip.setValue(`string.split('.') => [ /* Split into three parts; */
+	base64 => json => { /* Convert from base64; Parse JSON; */
+		alg: string.allowed('HS256', 'HS512'), /* Test for supported algo type */
+		typ: string.allowed('JWT'),
 	},
-	base64 => json => {
-		exp: unsigned,
-		iat: unsigned,
-		nbf: unsigned,
-		?name: ([..2..string,].join(' ')|string),
+	base64 => json => { /* Convert from base64; Parse JSON; */
+		?exp: unsigned, /* Optional exp */
+		?iat: unsigned, /* Optional iat */
+		?nbf: unsigned, /* Optional nbf */
+		?name: ([..2..string,].join(' ')|string), /* Name can be:
+			an array with first-name and last-name
+			OR
+			a string containing the full-name
+		*/
 		?city(='Somewhere'): string,
-		?vals: [...int],
 		...
 	},
-	base64
+	base64 /* Convert from base64; */
 ]`);
 const op = new CodeMirror((elt) => {
 	let op = document.querySelector('#op');
