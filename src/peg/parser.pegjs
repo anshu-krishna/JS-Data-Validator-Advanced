@@ -28,10 +28,13 @@ Type = ORB head:Format tail:(_ "|" _ v:Format { return v; })* CRB fn:FuncList?
 			}
 			return type_maker({ ty: "@or@", ls: ls, fn: fn });
 		}
-	/ OSB list:(head: ArrayFormat tail:(COMMA v:ArrayFormat { return v; } )* COMMA? { return [head, ...tail]; })? CSB fn:FuncList?
+	/ OSB list:(head: ArrayFormat tail:(
+    		COMMA v:ArrayFormat { return v; }
+		)* COMMA? { return [head, ...tail]; })? CSB fn:FuncList?
 		{ return type_maker({ ty: "@arr@", ls:list??[], fn: fn }); }
 	/ OCB list:(
-		head:IdfVal tail:(COMMA v:IdfVal { return v; })* { return Object.fromEntries([head, ...tail]); }
+		head:IdfVal tail:(COMMA v:IdfVal { return v; })*
+        	{ return Object.fromEntries([head, ...tail]); }
 	)? keep:(COMMA "...")? COMMA? CCB fn:FuncList?
 	{
 		const ret = type_maker({ ty: "@obj@", ls :list, fn: fn });
@@ -42,7 +45,9 @@ Type = ORB head:Format tail:(_ "|" _ v:Format { return v; })* CRB fn:FuncList?
 		return type_maker({ ty:ty, fn:fn });
 	}
 
-IdfVal "identifier:data-type pair" = opt:"?"? name:Idf def:(ORB _ "=" _ v:Value CRB { return {val:v}; } )? COLON value:Format
+IdfVal "identifier:data-type pair" = opt:"?"? name:(Idf / String) def:(
+		ORB _ "=" _ v:Value CRB { return {val:v}; }
+    )? COLON value:Format
 	{
 		if(opt === null) { value.rq = true; }
 		if(def !== null) { value.def = def.val; }
@@ -55,11 +60,11 @@ ArrayFormat = repeat:MoreCount? format:Format
 	}
 
 MoreCount "repeat-count"
-	= ".." count:SimpleUnsigned ".." _ {return parseFloat(count);}
+	= ".." count:Number ".." _ {return Math.floor(Math.abs(count))}
 	/ "..." _ { return 'yes'; }
 	
 FuncList "function-list" = head:Func tail:Func* { return [head, ...tail ]; }
-Func "function" = _ "." func:Idf args:(ORB vl:ValueList? CRB { return vl; } )?
+Func "function" = _ "." func:Idf args:(ORB vl:ValueList? COMMA? CRB { return vl; } )?
 	{
 		const ret = {fn: func};
 		if(args) { ret.args = args; }
@@ -67,80 +72,92 @@ Func "function" = _ "." func:Idf args:(ORB vl:ValueList? CRB { return vl; } )?
 	}
 
 // ----- JSON++ -----
-Value = False / Null / True / Object / Array / Number / String
+Value
+	= _ val:( Null / Undefined / True / False / Number / String ) _ { return val; }
+	/ Object
+    / Array
 
-// ----- Null -----
-Null = "null" { return null; }
+// ----- Object -----
+Object "object"
+	= OCB members:(
+		head:KeyVal tail:(COMMA m:KeyVal { return m; })*
+        	{ return Object.fromEntries([head, ...tail]); }
+	)? COMMA? CCB { return members !== null ? members: {}; }
+KeyVal "key:val pair" = name:( String / KeyChain ) COLON value:Value { return [name, value]; }
+KeyChain "key" = $(Idf ("." Idf)*)
+Idf "identifier" = $([_a-z$]i [0-9a-z$_]i*)
+
+// ----- Array -----
+Array = OSB values:ValueList? COMMA? CSB { return values ?? []; }
+ValueList "value-list" = head:Value tail:(COMMA v:Value { return v; })* { return [head, ...tail ]; }
+
+// ----- None -----
+Null "null" = "null" { return null; }
+Undefined "undefined" = "undefined" { return undefined; }
 
 // ----- Bool -----
 Bool "bool" = True / False
 False = "false" { return false; }
 True = "true" { return true; }
 
-// ----- Object -----
-Object "object"
-	= OCB members:(
-		head:KeyVal tail:(COMMA m:KeyVal { return m; })* { return Object.fromEntries([head, ...tail]); }
-	)? COMMA? CCB { return members !== null ? members: {}; }
-KeyVal "key:val pair"
-	= name:String COLON value:Value { return [name, value]; }
-	/ name:KeyChain COLON value:Value { return [name, value]; }
-KeyChain "key" = Idf ("." Idf)* { return text(); }
-Idf "identifier" = ([_a-z$]i [0-9a-z$_]i*) { return text(); }
-// ----- Array -----
-Array = OSB values:ValueList? COMMA? CSB { return values ?? []; }
-ValueList "value-list" = head:Value tail:(COMMA v:Value { return v; })* { return [head, ...tail ]; }
 // ----- Number -----
-Number "number" = "-"? SimpleUnsigned ("." Digit+)? SciNote? { return parseFloat(text()); }
-SciNote = [eE] ("-" / "+")? Digit+ { return text(); }
-SimpleUnsigned = ("0" / ([1-9] Digit*)) { return text(); }
-Digit = [0-9]
+Number "number"
+	= neg:"-"? "0x" digits:$(HexDigit+) { return parseInt(`${neg ?? ''}${digits}`, 16); }
+	/ neg:"-"? "0o" digits:$([0-7]+) { return parseInt(`${neg ?? ''}${digits}`, 8); }
+	/ neg:"-"? "0b" digits:$([0-1]+) { return parseInt(`${neg ?? ''}${digits}`, 2); }
+	/ "-"? Digit+ ("." Digit+)? ([eE] ("-" / "+")? Digit+)? { return parseFloat(text()); }
 
 // ----- String -----
 String "string"
-	= '"' chars:CharDQ* '"' { return chars.join(""); }
-	/ "'" chars:CharSQ* "'" { return chars.join(""); }
-	/ '`' chars:CharBQ* '`' { return chars.join(""); }
-CharDQ
-	= [^\0-\x1F\x5C\x22]
-	/ esc:EscChar { return esc; }
-CharSQ
-	= [^\0-\x1F\x5C\x27]
-	/ esc:EscChar { return esc; }
-CharBQ
-	= [^\0-\x1F\x5C\x60]
-	/ esc:EscChar { return esc; }
-EscChar "Escaped-Char"
-	= '\\\\' {return '\\'; }
-	/ '\\"' {return '"'; }
-	/ "\\'" {return "'"; }
-	/ '\\`' {return "`"; }
-	/ '\\b' {return "\b"; }
-	/ '\\f' {return "\f"; }
-	/ '\\n' {return "\n"; }
-	/ '\\r' {return "\r"; }
-	/ '\\t' {return "\t"; }
-	/ "\\u" digits:$(HexDig HexDig HexDig HexDig)
+	= '"' chars:(
+		[^\0-\x1F\x5C\x22] // Printable except '\' and '"'
+		/ SpecialChar
+	)* '"' { return chars.join(""); }
+	/ "'" chars:(
+		[^\0-\x1F\x5C\x27] // Printable except '\' and "'"
+		/ SpecialChar
+	)* "'" { return chars.join(""); }
+	/ '`' chars:(
+		[^\0-\x1F\x5C\x60] // Printable except '\' and '`'
+		/ SpecialChar
+	)* '`' { return chars.join(""); }
+SpecialChar
+	= '\\\\' { return '\\'; }
+	/ '\\"' { return '"'; }
+	/ "\\'" { return "'"; }
+	/ '\\`' { return '`'; }
+	/ '\\b' { return '\b'; }
+	/ '\\f' { return '\f'; }
+	/ '\\n' { return '\n'; }
+	/ '\\r' { return '\r'; }
+	/ '\\t' { return '\t'; }
+	/ "\\0" digits:$([0-7][0-7]?[0-7]?) { return String.fromCharCode(parseInt(digits, 8)); }
+	/ "\\x" digits:$(HexDigit HexDigit) { return String.fromCharCode(parseInt(digits, 16)); }
+	/ "\\u" digits:$(HexDigit HexDigit HexDigit HexDigit)
 		{ return String.fromCharCode(parseInt(digits, 16)); }
+	/ [\x0A] // Allowed line-feed in string literal
+	/ [\x09] // Allowed tab in string literal
 
 // ----- Other -----
+_ "whitespace" = ([ \t\n\r] / Comment)*
+Comment "Comment"
+	= '/*' (
+		[^\x2A] // Not *
+		/ '*'![\x2F] // '*' Neg-Look-Ahead for '/'
+	)* '*/' //{ return text().slice(2, -2).trim(); }
+	/ '//' [^\x0A]* [\x0A]? //{ return text().slice(2).trim(); }
+
+HexDigit "Hex-Char" = [0-9a-f]i
+Digit = [0-9]
+
+COMMA = _ "," _
+COLON = _ ":" _
+
 OSB = _ "[" _
 CSB = _ "]" _
-
-ORB = _ "(" _
-CRB = _ ")" _
 
 OCB = _ "{" _
 CCB = _ "}" _
 
-//OAB = _ "<" _
-//CAB = _ ">" _
-
-COLON = _ ":" _
-COMMA = _ "," _
-// OR = _ "|" _
-// ARROW = _ "=>" _
-// EQ = _ "=" _
-
-_ "whitespace" = [ \t\n\r]*
-HexDig "hex-char" = [0-9a-f]i
+ORB = _ "(" _
+CRB = _ ")" _

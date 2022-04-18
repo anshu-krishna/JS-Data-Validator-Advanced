@@ -8,7 +8,7 @@ A JS module for data validation of complexly-structured-data.
 
 ```javascript
 <script type="module">
-import { DataValidator } from 'https://cdn.jsdelivr.net/gh/anshu-krishna/JS-Data-Validator-Advanced@1.0/src/data-validator-min.js';
+import { DataValidator } from 'https://cdn.jsdelivr.net/gh/anshu-krishna/JS-Data-Validator-Advanced@1.1/src/data-validator-min.js';
 
 // Your code goes here
 </script>
@@ -50,19 +50,23 @@ import { DataValidator as DV } from './data-validator.js';
 const dv = (() => {
 	try {
 		return DV.New`
-		string.split('.') => [
-			base64 => json => {
-				alg: string.allowed('HS256', 'HS512'),
+		string.split('.') => [ /* Split into three parts; */
+			base64 => json => { /* Convert from base64; Parse JSON; */
+				alg: string.allowed('HS256', 'HS512'), /* Test for supported algo type */
 				typ: string.allowed('JWT'),
 			},
-			base64 => json => {
-				?exp: unsigned,
-				?iat: unsigned,
-				?nbf: unsigned,
-				?name: ([..2..string,].join(' ')|string),
+			base64 => json => { /* Convert from base64; Parse JSON; */
+				?exp: unsigned, /* Optional exp */
+				?iat: unsigned, /* Optional iat */
+				?nbf: unsigned, /* Optional nbf */
+				?name: ([..2..string,].join(' ')|string), /* Name can be:
+					an array with first-name and last-name
+					OR
+					a string containing the full-name
+				*/
 				...
 			},
-			base64
+			base64 /* Convert from base64; */
 		]`;
 	} catch (error) {
 		console.error(error);
