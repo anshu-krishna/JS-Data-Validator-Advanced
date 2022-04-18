@@ -1,5 +1,5 @@
 /*************************
- * Version: 1.1.1
+ * Version: 1.2
 *************************/
 /*************************
  * Other Functions / Classes
@@ -178,14 +178,7 @@ export class Ret {
 			peg_c0 = "=>",
 			peg_c1 = peg_literalExpectation("=>", false),
 			peg_c2 = function (head, v) { return v; },
-			peg_c3 = function (head, tail) {
-				let chain = [head, ...tail];
-				while (chain.length > 1) {
-					const last = chain.pop();
-					chain[chain.length - 1].nx = last;
-				}
-				return chain[0];
-			},
+			peg_c3 = function (head, tail) { return format_handler(head, tail); },
 			peg_c4 = "|",
 			peg_c5 = peg_literalExpectation("|", false),
 			peg_c6 = function (head, v) { return v; },
@@ -525,7 +518,7 @@ export class Ret {
 			let s0, s1, s2, s3, s4, s5, s6, s7, s8;
 
 			s0 = peg_currPos;
-			s1 = peg_parse_();
+			s1 = peg_parseORB();
 			if (s1 !== peg_FAILED) {
 				s2 = peg_parseType();
 				if (s2 !== peg_FAILED) {
@@ -602,9 +595,15 @@ export class Ret {
 						}
 					}
 					if (s3 !== peg_FAILED) {
-						peg_savedPos = s0;
-						s1 = peg_c3(s2, s3);
-						s0 = s1;
+						s4 = peg_parseCRB();
+						if (s4 !== peg_FAILED) {
+							peg_savedPos = s0;
+							s1 = peg_c3(s2, s3);
+							s0 = s1;
+						} else {
+							peg_currPos = s0;
+							s0 = peg_FAILED;
+						}
 					} else {
 						peg_currPos = s0;
 						s0 = peg_FAILED;
@@ -619,11 +618,83 @@ export class Ret {
 			}
 			if (s0 === peg_FAILED) {
 				s0 = peg_currPos;
-				s1 = peg_parse_();
+				s1 = peg_parseType();
 				if (s1 !== peg_FAILED) {
-					s2 = peg_parseType();
+					s2 = [];
+					s3 = peg_currPos;
+					s4 = peg_parse_();
+					if (s4 !== peg_FAILED) {
+						if (input.substr(peg_currPos, 2) === peg_c0) {
+							s5 = peg_c0;
+							peg_currPos += 2;
+						} else {
+							s5 = peg_FAILED;
+							if (peg_silentFails === 0) { peg_fail(peg_c1); }
+						}
+						if (s5 !== peg_FAILED) {
+							s6 = peg_parse_();
+							if (s6 !== peg_FAILED) {
+								s7 = peg_parseType();
+								if (s7 !== peg_FAILED) {
+									peg_savedPos = s3;
+									s4 = peg_c2(s1, s7);
+									s3 = s4;
+								} else {
+									peg_currPos = s3;
+									s3 = peg_FAILED;
+								}
+							} else {
+								peg_currPos = s3;
+								s3 = peg_FAILED;
+							}
+						} else {
+							peg_currPos = s3;
+							s3 = peg_FAILED;
+						}
+					} else {
+						peg_currPos = s3;
+						s3 = peg_FAILED;
+					}
+					while (s3 !== peg_FAILED) {
+						s2.push(s3);
+						s3 = peg_currPos;
+						s4 = peg_parse_();
+						if (s4 !== peg_FAILED) {
+							if (input.substr(peg_currPos, 2) === peg_c0) {
+								s5 = peg_c0;
+								peg_currPos += 2;
+							} else {
+								s5 = peg_FAILED;
+								if (peg_silentFails === 0) { peg_fail(peg_c1); }
+							}
+							if (s5 !== peg_FAILED) {
+								s6 = peg_parse_();
+								if (s6 !== peg_FAILED) {
+									s7 = peg_parseType();
+									if (s7 !== peg_FAILED) {
+										peg_savedPos = s3;
+										s4 = peg_c2(s1, s7);
+										s3 = s4;
+									} else {
+										peg_currPos = s3;
+										s3 = peg_FAILED;
+									}
+								} else {
+									peg_currPos = s3;
+									s3 = peg_FAILED;
+								}
+							} else {
+								peg_currPos = s3;
+								s3 = peg_FAILED;
+							}
+						} else {
+							peg_currPos = s3;
+							s3 = peg_FAILED;
+						}
+					}
 					if (s2 !== peg_FAILED) {
-						s1 = [s1, s2];
+						peg_savedPos = s0;
+						s1 = peg_c3(s1, s2);
 						s0 = s1;
 					} else {
 						peg_currPos = s0;
@@ -632,6 +703,29 @@ export class Ret {
 				} else {
 					peg_currPos = s0;
 					s0 = peg_FAILED;
+				}
+				if (s0 === peg_FAILED) {
+					s0 = peg_currPos;
+					s1 = peg_parse_();
+					if (s1 !== peg_FAILED) {
+						s2 = peg_parseType();
+						if (s2 !== peg_FAILED) {
+							s3 = peg_parse_();
+							if (s3 !== peg_FAILED) {
+								s1 = [s1, s2, s3];
+								s0 = s1;
+							} else {
+								peg_currPos = s0;
+								s0 = peg_FAILED;
+							}
+						} else {
+							peg_currPos = s0;
+							s0 = peg_FAILED;
+						}
+					} else {
+						peg_currPos = s0;
+						s0 = peg_FAILED;
+					}
 				}
 			}
 
@@ -3251,6 +3345,14 @@ export class Ret {
 			if (fn !== null) { ret.fn = fn; }
 			if (ls !== null) { ret.ls = ls; }
 			return ret;
+		}
+		function format_handler(head, tail) {
+			let chain = [head, ...tail];
+			while (chain.length > 1) {
+				const last = chain.pop();
+				chain[chain.length - 1].nx = last;
+			}
+			return chain[0];
 		}
 
 

@@ -1,13 +1,19 @@
-/* converted on Mon Apr 18, 2022, 14:21 (UTC+05:30) by pegjs-to-w3c v0.57 which is Copyright (c) 2011-2022 by Gunther Rademacher <grd@gmx.net> */
+/* converted on Mon Apr 18, 2022, 15:05 (UTC+05:30) by pegjs-to-w3c v0.57 which is Copyright (c) 2011-2022 by Gunther Rademacher <grd@gmx.net> */
 
-Format   ::= _ Type ( _ '=>' _ Type )*
-Type     ::= ( ORB Format ( _ '|' _ Format )* CRB | OSB ( ArrayFormat ( COMMA ArrayFormat )* COMMA? )? CSB | OCB ( IdfVal ( COMMA IdfVal )* )? ( COMMA '...' )? COMMA? CCB | Idf ) FuncList?
+Format   ::= ORB Type ( _ '=>' _ Type )* CRB
+           | Type ( _ '=>' _ Type )*
+           | _ Type _
+Type     ::= ORB Format ( _ '|' _ Format )* CRB FuncList?
+           | OSB ( ArrayFormat ( COMMA ArrayFormat )* COMMA? )? CSB FuncList?
+           | OCB ( IdfVal ( COMMA IdfVal )* )? ( COMMA '...' )? COMMA? CCB FuncList?
+           | Idf FuncList?
 IdfVal   ::= '?'? ( Idf | String ) ( ORB _ '=' _ Value CRB )? COLON Format
 ArrayFormat
          ::= MoreCount? Format
 MoreCount
-         ::= ( '..' Number '..' | '...' ) _
-FuncList ::= Func+
+         ::= '..' Number '..' _
+           | '...' _
+FuncList ::= Func Func*
 Func     ::= _ '.' Idf ( ORB ValueList? COMMA? CRB )?
 Value    ::= _ ( 'null' | 'undefined' | 'true' | 'false' | Number | String ) _
            | Object
@@ -32,7 +38,10 @@ CRB      ::= _ ')' _
 <?TOKENS?>
 
 Idf      ::= $ [_a-z$] [0-9a-z$_]*
-Number   ::= '-'? ( '0x' $ HexDigit+ | '0o' $ [0-7]+ | '0b' $ [0-1]+ | Digit+ ( '.' Digit+ )? ( [eE] ( '-' | '+' )? Digit+ )? )
+Number   ::= '-'? '0x' $ HexDigit+
+           | '-'? '0o' $ [0-7]+
+           | '-'? '0b' $ [0-1]+
+           | '-'? Digit+ ( '.' Digit+ )? ( [eE] ( '-' | '+' )? Digit+ )?
 String   ::= '"' ( [^\"#x0-#x1F] | SpecialChar )* '"'
            | "'" ( [^\'#x0-#x1F] | SpecialChar )* "'"
            | '`' ( [^\`#x0-#x1F] | SpecialChar )* '`'
@@ -47,10 +56,12 @@ SpecialChar
            | '\r'
            | '\t'
            | '\0' $ [0-7] [0-7]? [0-7]?
-           | ( '\x' $ | '\u' $ HexDigit HexDigit ) HexDigit HexDigit
-           | [#xA#x9]
+           | '\x' $ HexDigit HexDigit
+           | '\u' $ HexDigit HexDigit HexDigit HexDigit
+           | [#xA]
+           | [#x9]
 _        ::= ( [ #x9#xA#xD] | Comment )*
 Comment  ::= '/*' ( [^*] | '*' )* '*/'
-           | '//' [^#xA]* #xA?
+           | '//' [^#xA]* [#xA]?
 HexDigit ::= [0-9a-f]
 Digit    ::= [0-9]

@@ -8,7 +8,7 @@ A JS module for data validation of complexly-structured-data.
 
 ```javascript
 <script type="module">
-import { DataValidator } from 'https://cdn.jsdelivr.net/gh/anshu-krishna/JS-Data-Validator-Advanced@1.1/src/data-validator-min.js';
+import { DataValidator } from 'https://cdn.jsdelivr.net/gh/anshu-krishna/JS-Data-Validator-Advanced@1.2/src/data-validator-min.js';
 
 // Your code goes here
 </script>

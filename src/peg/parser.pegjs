@@ -5,18 +5,21 @@
 		if(ls !== null) { ret.ls = ls; }
 		return ret;
 	}
-}
-
-Format = _ head:Type tail:(_ "=>" _ v:Type { return v;})*
-	{
+    function format_handler(head, tail) {
 		let chain = [head, ...tail];
 		while(chain.length > 1) {
 			const last = chain.pop();
 			chain[chain.length - 1].nx = last;
 		}
 		return chain[0];
-	}
-	/ _ Type
+    }
+}
+
+Format = ORB head:Type tail:(_ "=>" _ v:Type { return v;})* CRB
+		{ return format_handler(head, tail); }
+    / head:Type tail:(_ "=>" _ v:Type { return v;})*
+    	{ return format_handler(head, tail); }
+	/ _ Type _
 
 Type = ORB head:Format tail:(_ "|" _ v:Format { return v; })* CRB fn:FuncList?
 		{
